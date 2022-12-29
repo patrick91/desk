@@ -1,4 +1,4 @@
-from neopixel import *
+from neopixel import Adafruit_NeoPixel, Color
 
 from pyhap.accessory import Accessory
 from pyhap.const import CATEGORY_LIGHTBULB
@@ -8,9 +8,18 @@ class NeoPixelLightStrip(Accessory):
 
     category = CATEGORY_LIGHTBULB
 
-    def __init__(self, LED_count, is_GRB, LED_pin,
-                 LED_freq_hz, LED_DMA, LED_brightness,
-                 LED_invert, *args, **kwargs):
+    def __init__(
+        self,
+        LED_count,
+        is_GRB,
+        LED_pin,
+        LED_freq_hz,
+        LED_DMA,
+        LED_brightness,
+        LED_invert,
+        *args,
+        **kwargs
+    ):
 
         """
         LED_Count - the number of LEDs in the array
@@ -28,17 +37,18 @@ class NeoPixelLightStrip(Accessory):
 
         # Set our neopixel API services up using Lightbulb base
         serv_light = self.add_preload_service(
-            'Lightbulb', chars=['On', 'Hue', 'Saturation', 'Brightness'])
+            "Lightbulb", chars=["On", "Hue", "Saturation", "Brightness"]
+        )
 
         # Configure our callbacks
-        self.char_hue = serv_light.configure_char(
-            'Hue', setter_callback=self.set_hue)
+        self.char_hue = serv_light.configure_char("Hue", setter_callback=self.set_hue)
         self.char_saturation = serv_light.configure_char(
-            'Saturation', setter_callback=self.set_saturation)
+            "Saturation", setter_callback=self.set_saturation
+        )
+        self.char_on = serv_light.configure_char("On", setter_callback=self.set_state)
         self.char_on = serv_light.configure_char(
-            'On', setter_callback=self.set_state)
-        self.char_on = serv_light.configure_char(
-            'Brightness', setter_callback=self.set_brightness)
+            "Brightness", setter_callback=self.set_brightness
+        )
 
         # Set our instance variables
         self.accessory_state = 0  # State of the neo light On/Off
@@ -49,8 +59,9 @@ class NeoPixelLightStrip(Accessory):
         self.is_GRB = is_GRB  # Most neopixels are Green Red Blue
         self.LED_count = LED_count
 
-        self.neo_strip = Adafruit_NeoPixel(LED_count, LED_pin, LED_freq_hz,
-                                           LED_DMA, LED_invert, LED_brightness)
+        self.neo_strip = Adafruit_NeoPixel(
+            LED_count, LED_pin, LED_freq_hz, LED_DMA, LED_invert, LED_brightness
+        )
         self.neo_strip.begin()
 
     def set_state(self, value):
@@ -65,11 +76,11 @@ class NeoPixelLightStrip(Accessory):
         # otherwise update the hue value only
         if self.accessory_state == 1:
             self.hue = value
-            rgb_tuple = self.hsv_to_rgb(
-                self.hue, self.saturation, self.brightness)
+            rgb_tuple = self.hsv_to_rgb(self.hue, self.saturation, self.brightness)
             if len(rgb_tuple) == 3:
                 self.update_neopixel_with_color(
-                    rgb_tuple[0], rgb_tuple[1], rgb_tuple[2])
+                    rgb_tuple[0], rgb_tuple[1], rgb_tuple[2]
+                )
         else:
             self.hue = value
 
@@ -83,14 +94,10 @@ class NeoPixelLightStrip(Accessory):
 
     def update_neopixel_with_color(self, red, green, blue):
         for i in range(self.LED_count):
-            if(self.is_GRB):
-                self.neo_strip.setPixelColor(i, Color(int(green),
-                                                      int(red),
-                                                      int(blue)))
+            if self.is_GRB:
+                self.neo_strip.setPixelColor(i, Color(int(green), int(red), int(blue)))
             else:
-                self.neo_strip.setPixelColor(i, Color(int(red),
-                                                      int(green),
-                                                      int(blue)))
+                self.neo_strip.setPixelColor(i, Color(int(red), int(green), int(blue)))
 
         self.neo_strip.show()
 
@@ -131,4 +138,8 @@ class NeoPixelLightStrip(Accessory):
 
         m = v - C
 
-        return int((RGB_Pri[0] + m) * 255), int((RGB_Pri[1] + m) * 255), int((RGB_Pri[2] + m) * 255)
+        return (
+            int((RGB_Pri[0] + m) * 255),
+            int((RGB_Pri[1] + m) * 255),
+            int((RGB_Pri[2] + m) * 255),
+        )
